@@ -233,10 +233,10 @@ namespace CargaImagenes.UI
         {
             txtCodigo.Text = producto.Codigo;
             txtDescripcion.Text = producto.Descripcion;
-            txtPrecio.Text = producto.Precio.ToString("F2", CultureInfo.InvariantCulture);
-            txtPrecioA.Text = producto.PrecioA.ToString("F2", CultureInfo.InvariantCulture);
-            txtPrecioB.Text = producto.PrecioB.ToString("F2", CultureInfo.InvariantCulture);
-            txtPrecioC.Text = producto.PrecioC.ToString("F2", CultureInfo.InvariantCulture);
+            txtPrecio.Text = $"L. {producto.Precio.ToString("F2", CultureInfo.InvariantCulture)}";
+            txtPrecioA.Text = $"L. {producto.PrecioA.ToString("F2", CultureInfo.InvariantCulture)}";
+            txtPrecioB.Text = $"L. {producto.PrecioB.ToString("F2", CultureInfo.InvariantCulture)}";
+            txtPrecioC.Text = $"L. {producto.PrecioC.ToString("F2", CultureInfo.InvariantCulture)}";
             txtCantidad.Text = producto.Cantidad.ToString();
             txtDescripcionAmpliada.Text = producto.DescripcionAmpliada;
             txtSubdescripcion1.Text = producto.Subdescripcion1;
@@ -398,9 +398,13 @@ namespace CargaImagenes.UI
 
         private void ProcesarCampoPrecio(TextBox textBox, string propName, string nombreCampo)
         {
-            if (decimal.TryParse(textBox.Text, out decimal precio))
+            var texto = textBox.Text.Trim();
+            if (texto.StartsWith("L."))
+                texto = texto[2..].Trim();
+
+            if (decimal.TryParse(texto, out decimal precio))
             {
-                textBox.Text = precio.ToString("F2", CultureInfo.InvariantCulture);
+                textBox.Text = $"L. {precio.ToString("F2", CultureInfo.InvariantCulture)}";
                 if (dgvProductos.SelectedRows.Count > 0 &&
                     dgvProductos.SelectedRows[0].DataBoundItem is Producto producto)
                 {
@@ -414,7 +418,7 @@ namespace CargaImagenes.UI
                     dgvProductos.SelectedRows[0].DataBoundItem is Producto producto)
                 {
                     decimal valorActual = (decimal)typeof(Producto).GetProperty(propName)?.GetValue(producto, null);
-                    textBox.Text = valorActual.ToString("F2", CultureInfo.InvariantCulture);
+                    textBox.Text = $"L. {valorActual.ToString("F2", CultureInfo.InvariantCulture)}";
                 }
             }
         }
@@ -677,6 +681,7 @@ namespace CargaImagenes.UI
                     File.Delete(tempPath);
                 using var fileStream = new IOFileStream(tempPath, FileMode.Create, FileAccess.Write);
                 await Task.Run(() => producto.Imagen.Save(fileStream, ImageFormat.Jpeg));
+                GuardarImagenEnBaseDeDatos(producto.Id, imageData);
                 pbProducto.Image = producto.Imagen;
                 dgvProductos.Refresh();
                 MessageBox.Show("Imagen actualizada correctamente", "Éxito", MessageBoxButtons.OK, MessageBoxIcon.Information);
@@ -1292,6 +1297,34 @@ namespace CargaImagenes.UI
             {
                 dgvProductos.Focus(); // Redirigir el foco al DataGridView al presionar flechas
                 e.Handled = false; // Permitir que el DataGridView maneje las flechas
+            }
+        }
+
+        private void GuardarImagenEnBaseDeDatos(int itemId, byte[] imageData)
+        {
+            try
+            {
+                const string checkQuery = "SELECT COUNT(*) FROM ItemImage WHERE ItemID = @ItemID";
+                var pCheck = new Dictionary<string, object> { ["@ItemID"] = itemId };
+                var result = _databaseService.ExecuteScalar(checkQuery, pCheck);
+                int count = result != null ? Convert.ToInt32(result) : 0;
+
+                string query = count > 0
+                    ? "UPDATE ItemImage SET Imagen = @Imagen WHERE ItemID = @ItemID"
+                    : "INSERT INTO ItemImage (ItemID, Imagen) VALUES (@ItemID, @Imagen)";
+
+                var parameters = new Dictionary<string, object>
+                {
+                    ["@ItemID"] = itemId,
+                    ["@Imagen"] = imageData
+                };
+
+                _databaseService.ExecuteNonQuery(query, parameters);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error al guardar imagen en la base de datos: {ex.Message}",
+                                "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
         #endregion
