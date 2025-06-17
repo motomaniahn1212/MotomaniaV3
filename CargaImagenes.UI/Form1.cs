@@ -51,6 +51,7 @@ namespace CargaImagenes.UI
         public Form1(IDatabaseService databaseService, AppSettings appSettings)
         {
             InitializeComponent();
+            lblProductosSeleccionados.BringToFront();
             _databaseService = databaseService;
             _appSettings = appSettings;
             _tempImagePath = _appSettings.TempImagePath;
