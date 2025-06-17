@@ -37,6 +37,10 @@ namespace CargaImagenes.Core
         public int? CategoriaId { get; set; }
         public int? DepartamentoId { get; set; }
 
+        public string? ProveedorNombre { get; set; }
+        public string? CategoriaNombre { get; set; }
+        public string? DepartamentoNombre { get; set; }
+
         public bool TieneImagen { get; set; }
         public Image? Imagen { get; set; }
         public Image? ImagenMiniatura { get; set; }
