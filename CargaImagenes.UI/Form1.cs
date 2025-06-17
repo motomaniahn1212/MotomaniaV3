@@ -735,9 +735,13 @@ namespace CargaImagenes.UI
            i.ExtendedDescription AS DescripcionAmpliada,
            i.SubDescription1 AS Subdescripcion1,
            i.SupplierID, i.CategoryID, i.DepartmentID,
+           s.SupplierName, c.Name AS CategoryName, d.Name AS DepartmentName,
            CASE WHEN img.Imagen IS NOT NULL THEN 1 ELSE 0 END AS TieneImagen
       FROM Item i
  LEFT JOIN ItemImage img ON i.ID = img.ItemID
+ LEFT JOIN Supplier s ON i.SupplierID = s.ID
+ LEFT JOIN Category c ON i.CategoryID = c.ID
+ LEFT JOIN Department d ON i.DepartmentID = d.ID
      WHERE 1=1 ";
                     var parameters = new Dictionary<string, object>();
                     var terminos = ObtenerTerminosBusqueda();
@@ -747,7 +751,10 @@ namespace CargaImagenes.UI
                         query += $@"AND (i.ItemLookupCode LIKE {param} OR
                                     i.Description LIKE {param} OR
                                     i.ExtendedDescription LIKE {param} OR
-                                    i.SubDescription1 LIKE {param}) ";
+                                    i.SubDescription1 LIKE {param} OR
+                                    s.SupplierName LIKE {param} OR
+                                    c.Name LIKE {param} OR
+                                    d.Name LIKE {param}) ";
                         parameters[param] = $"%{terminos[i]}%";
                     }
 
@@ -1045,10 +1052,14 @@ namespace CargaImagenes.UI
                 var query = $@"SELECT i.ID, i.ItemLookupCode AS Codigo, i.Description AS Descripcion,
                     i.Price AS Price, {campoPrecio} AS Precio, i.PriceA AS PrecioA, i.PriceB AS PrecioB, i.PriceC AS PrecioC,
                     i.Quantity AS Cantidad, i.ExtendedDescription AS DescripcionAmpliada,
-                    i.SubDescription1 AS Subdescripcion1, i.SupplierID, i.CategoryID, i.DepartmentID, 
-                    CASE WHEN img.Imagen IS NOT NULL THEN 1 ELSE 0 END AS TieneImagen 
-                    FROM Item i 
-                    LEFT JOIN ItemImage img ON i.ID = img.ItemID 
+                    i.SubDescription1 AS Subdescripcion1, i.SupplierID, i.CategoryID, i.DepartmentID,
+                    s.SupplierName, c.Name AS CategoryName, d.Name AS DepartmentName,
+                    CASE WHEN img.Imagen IS NOT NULL THEN 1 ELSE 0 END AS TieneImagen
+                    FROM Item i
+                    LEFT JOIN ItemImage img ON i.ID = img.ItemID
+                    LEFT JOIN Supplier s ON i.SupplierID = s.ID
+                    LEFT JOIN Category c ON i.CategoryID = c.ID
+                    LEFT JOIN Department d ON i.DepartmentID = d.ID
                     WHERE 1=1 ";
                 var parameters = new Dictionary<string, object>();
                 AplicarFiltrosAQuery(ref query);
@@ -1061,7 +1072,10 @@ namespace CargaImagenes.UI
                         query += @"AND (i.ItemLookupCode LIKE " + param + @" OR
                      i.Description LIKE " + param + @" OR
                      i.ExtendedDescription LIKE " + param + @" OR
-                     i.SubDescription1 LIKE " + param + @") ";
+                     i.SubDescription1 LIKE " + param + @" OR
+                     s.SupplierName LIKE " + param + @" OR
+                     c.Name LIKE " + param + @" OR
+                     d.Name LIKE " + param + @") ";
                         parameters.Add(param, $"%{terminos[i]}%");
                     }
                 }
@@ -1118,6 +1132,9 @@ namespace CargaImagenes.UI
                         ProveedorId = row["SupplierID"] != DBNull.Value ? Convert.ToInt32(row["SupplierID"]) : null,
                         CategoriaId = row["CategoryID"] != DBNull.Value ? Convert.ToInt32(row["CategoryID"]) : null,
                         DepartamentoId = row["DepartmentID"] != DBNull.Value ? Convert.ToInt32(row["DepartmentID"]) : null,
+                        ProveedorNombre = row.Table.Columns.Contains("SupplierName") ? row["SupplierName"].ToString() : null,
+                        CategoriaNombre = row.Table.Columns.Contains("CategoryName") ? row["CategoryName"].ToString() : null,
+                        DepartamentoNombre = row.Table.Columns.Contains("DepartmentName") ? row["DepartmentName"].ToString() : null,
                         TieneImagen = Convert.ToBoolean(row["TieneImagen"]),
                         Seleccionado = false
                     };
