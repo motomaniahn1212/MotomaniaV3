@@ -82,6 +82,7 @@ namespace CargaImagenes.UI
                 Size = new Size(cfg.Width, cfg.Height);
             }
             dgvProductos.Focus(); // Establecer foco inicial en DataGridView
+            UpdateCounters();    // Mostrar contador de productos seleccionados desde el inicio
         }
         #endregion
 
