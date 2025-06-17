@@ -1,0 +1,15 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+	<PropertyGroup>
+		<TargetFramework>net8.0</TargetFramework>
+		<Nullable>enable</Nullable>
+		<ImplicitUsings>enable</ImplicitUsings>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<!-- Necesario para usar System.Drawing.Image -->
+		<PackageReference Include="System.Drawing.Common" Version="8.0.0" />
+		<!-- iText7 + adaptador para firmas/cifrado -->
+		<PackageReference Include="itext7" Version="9.1.0" />
+		<PackageReference Include="itext7.bouncy-castle-adapter" Version="9.1.0" />
+	</ItemGroup>
+</Project>

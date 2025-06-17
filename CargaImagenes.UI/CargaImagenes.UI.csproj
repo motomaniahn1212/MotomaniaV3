@@ -1,0 +1,33 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <UseWindowsForms>true</UseWindowsForms>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <ApplicationIcon>bin\Debug\net8.0-windows\iconn.ico</ApplicationIcon>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <Optimize>True</Optimize>
+  </PropertyGroup>
+  <ItemGroup>
+    <Content Include="bin\Debug\net8.0-windows\iconn.ico" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Referencias a tus proyectos Core y Data -->
+    <ProjectReference Include="..\CargaImagenes.Core\CargaImagenes.Core.csproj" />
+    <ProjectReference Include="..\CargaImagenes.Data\CargaImagenes.Data.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- SQL Client -->
+    <PackageReference Include="Microsoft.Data.SqlClient" Version="6.0.2" />
+    <!-- iText7 -->
+    <PackageReference Include="itext7" Version="9.1.0" />
+    <!-- DI / Hosting -->
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="9.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="9.0.0" />
+  </ItemGroup>
+</Project>

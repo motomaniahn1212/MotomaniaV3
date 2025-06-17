@@ -1,0 +1,17 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+	<PropertyGroup>
+		<TargetFramework>net8.0</TargetFramework>
+		<Nullable>enable</Nullable>
+		<ImplicitUsings>enable</ImplicitUsings>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<!-- Referencia al Core -->
+		<ProjectReference Include="..\CargaImagenes.Core\CargaImagenes.Core.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<!-- SQL Client -->
+		<PackageReference Include="Microsoft.Data.SqlClient" Version="6.0.2" />
+	</ItemGroup>
+</Project>
