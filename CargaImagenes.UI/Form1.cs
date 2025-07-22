@@ -177,7 +177,16 @@ namespace CargaImagenes.UI
             };
         }
 
-        private static Dictionary<int, bool> GuardarEstadoSeleccion() => new();
+        private Dictionary<int, bool> GuardarEstadoSeleccion()
+        {
+            var dic = new Dictionary<int, bool>();
+            foreach (var p in _productos)
+                dic[p.Id] = p.Seleccionado;
+            foreach (var p in _productosTodos)
+                if (!dic.ContainsKey(p.Id))
+                    dic[p.Id] = p.Seleccionado;
+            return dic;
+        }
 
         private void RestaurarEstadoSeleccion(Dictionary<int, bool> seleccionados)
         {
@@ -1354,9 +1363,16 @@ namespace CargaImagenes.UI
             try
             {
                 CargarProductos();
-                var lista = _productos.Any(p => p.Seleccionado)
-                    ? _productos.Where(p => p.Seleccionado).ToList()
-                    : _productos.ToList();
+                var lista = _productos.Where(p => p.Seleccionado).ToList();
+                if (lista.Count == 0)
+                {
+                    MessageBox.Show(
+                        "Seleccione al menos un producto antes de generar el PDF.",
+                        "Aviso",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Information);
+                    return;
+                }
                 string opcionPrecio = cboPrecios.SelectedItem?.ToString() ?? "Desconocido";
                 Console.WriteLine($"Filtro de precio seleccionado: {opcionPrecio}");
                 foreach (var prod in lista)
