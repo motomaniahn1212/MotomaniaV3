@@ -433,7 +433,7 @@ namespace CargaImagenes.UI
                 if (dgvProductos.SelectedRows.Count > 0 &&
                     dgvProductos.SelectedRows[0].DataBoundItem is Producto producto)
                 {
-                    decimal valorActual = (decimal)typeof(Producto).GetProperty(propName)?.GetValue(producto, null);
+                    decimal valorActual = (decimal)(typeof(Producto).GetProperty(propName)?.GetValue(producto, null) ?? 0m);
                     textBox.Text = $"L. {valorActual.ToString("F2", CultureInfo.InvariantCulture)}";
                 }
             }
@@ -553,7 +553,7 @@ namespace CargaImagenes.UI
 
                     await CargarImagenProductoAsync(producto);
 
-                    CargarImagenesProductos(new[] { producto });
+                    await CargarImagenesProductos(new[] { producto });
 
                 pbProducto.Image = producto.Imagen;
                 if (_ultimoProductoSeleccionado != null && _ultimoProductoSeleccionado.Id == producto.Id)
@@ -1238,10 +1238,10 @@ namespace CargaImagenes.UI
         #region Manejo de Imágenes
         private async Task CargarImagenProductoAsync(Producto producto, bool mostrarErrores = true)
         {
-            CargarImagenesProductos(new[] { producto }, mostrarErrores);
+            await CargarImagenesProductos(new[] { producto }, mostrarErrores);
         }
 
-        private void CargarImagenesProductos(IEnumerable<Producto> productos, bool mostrarErrores = true)
+        private async Task CargarImagenesProductos(IEnumerable<Producto> productos, bool mostrarErrores = true)
         {
             var productosParaCargar = productos
                 .Where(p => p.TieneImagen && p.Imagen == null)
@@ -1251,19 +1251,13 @@ namespace CargaImagenes.UI
 
             try
             {
-
-                const string query = "SELECT Imagen FROM ItemImage WHERE ItemID = @ItemID";
-                var parameters = new Dictionary<string, object> { ["@ItemID"] = producto.Id };
-                var dtImagen = await _databaseService.ExecuteQueryWithParametersAsync(query, parameters);
-                if (dtImagen.Rows.Count > 0 && dtImagen.Rows[0]["Imagen"] != DBNull.Value)
-
                 var paramNames = productosParaCargar
                     .Select((p, i) => ($"@Id{i}", p.Id))
                     .ToList();
                 var inClause = string.Join(",", paramNames.Select(t => t.Item1));
                 var query = $"SELECT ItemID, Imagen FROM ItemImage WHERE ItemID IN ({inClause})";
                 var parameters = paramNames.ToDictionary(t => t.Item1, t => (object)t.Item2);
-                var dtImagenes = _databaseService.ExecuteQueryWithParameters(query, parameters);
+                var dtImagenes = await _databaseService.ExecuteQueryWithParametersAsync(query, parameters);
                 var imagenes = new Dictionary<int, byte[]>();
                 foreach (DataRow row in dtImagenes.Rows)
 
@@ -1545,9 +1539,9 @@ namespace CargaImagenes.UI
                                 "Depuración", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 try
                 {
-                    await Task.Run(() =>
+                    await Task.Run(async () =>
                     {
-                        CargarImagenesProductos(lista, false);
+                        await CargarImagenesProductos(lista, false);
                         GeneradorCatalogoPdf.GenerarCatálogo(lista, sfd.FileName);
                     });
                 }
