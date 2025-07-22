@@ -550,7 +550,11 @@ namespace CargaImagenes.UI
             {
                 ActualizarCamposDetalle(producto);
                 if (producto.TieneImagen && producto.Imagen == null)
+
                     await CargarImagenProductoAsync(producto);
+
+                    CargarImagenesProductos(new[] { producto });
+
                 pbProducto.Image = producto.Imagen;
                 if (_ultimoProductoSeleccionado != null && _ultimoProductoSeleccionado.Id == producto.Id)
                     return;
@@ -777,7 +781,7 @@ namespace CargaImagenes.UI
                         parameters[param] = $"%{terminos[i]}%";
                     }
 
-                    AplicarFiltrosAQuery(ref query);
+                    AplicarFiltrosAQuery(ref query, parameters);
                     if (cboPrecios.SelectedItem?.ToString() == "Oferta")
                         query += "ORDER BY i.SaleEndDate DESC";
                     else
@@ -1029,14 +1033,41 @@ namespace CargaImagenes.UI
         #endregion
 
         #region Filtros y Carga de Productos
-        private void AplicarFiltrosAQuery(ref string query)
+        private void AplicarFiltrosAQuery(ref string query, Dictionary<string, object> parameters)
         {
             if (_proveedoresFiltro.Count > 0)
-                query += $"AND i.SupplierID IN ({string.Join(",", _proveedoresFiltro)}) ";
+            {
+                var paramNames = new List<string>();
+                for (int i = 0; i < _proveedoresFiltro.Count; i++)
+                {
+                    string name = "@Prov" + i;
+                    paramNames.Add(name);
+                    parameters[name] = _proveedoresFiltro[i];
+                }
+                query += $"AND i.SupplierID IN ({string.Join(",", paramNames)}) ";
+            }
             if (_categoriasFiltro.Count > 0)
-                query += $"AND i.CategoryID IN ({string.Join(",", _categoriasFiltro)}) ";
+            {
+                var paramNames = new List<string>();
+                for (int i = 0; i < _categoriasFiltro.Count; i++)
+                {
+                    string name = "@Cat" + i;
+                    paramNames.Add(name);
+                    parameters[name] = _categoriasFiltro[i];
+                }
+                query += $"AND i.CategoryID IN ({string.Join(",", paramNames)}) ";
+            }
             if (_departamentosFiltro.Count > 0)
-                query += $"AND i.DepartmentID IN ({string.Join(",", _departamentosFiltro)}) ";
+            {
+                var paramNames = new List<string>();
+                for (int i = 0; i < _departamentosFiltro.Count; i++)
+                {
+                    string name = "@Dept" + i;
+                    paramNames.Add(name);
+                    parameters[name] = _departamentosFiltro[i];
+                }
+                query += $"AND i.DepartmentID IN ({string.Join(",", paramNames)}) ";
+            }
             if (_filtrarConImagen && !_filtrarSinImagen)
                 query += "AND img.Imagen IS NOT NULL ";
             else if (!_filtrarConImagen && _filtrarSinImagen)
@@ -1096,7 +1127,7 @@ namespace CargaImagenes.UI
                     LEFT JOIN Department d ON i.DepartmentID = d.ID
                     WHERE 1=1 ";
                 var parameters = new Dictionary<string, object>();
-                AplicarFiltrosAQuery(ref query);
+                AplicarFiltrosAQuery(ref query, parameters);
                 if (!string.IsNullOrWhiteSpace(_textoBusqueda))
                 {
                     var terminos = ObtenerTerminosBusqueda();
@@ -1207,41 +1238,72 @@ namespace CargaImagenes.UI
         #region Manejo de Imágenes
         private async Task CargarImagenProductoAsync(Producto producto, bool mostrarErrores = true)
         {
+            CargarImagenesProductos(new[] { producto }, mostrarErrores);
+        }
+
+        private void CargarImagenesProductos(IEnumerable<Producto> productos, bool mostrarErrores = true)
+        {
+            var productosParaCargar = productos
+                .Where(p => p.TieneImagen && p.Imagen == null)
+                .ToList();
+            if (productosParaCargar.Count == 0)
+                return;
+
             try
             {
+
                 const string query = "SELECT Imagen FROM ItemImage WHERE ItemID = @ItemID";
                 var parameters = new Dictionary<string, object> { ["@ItemID"] = producto.Id };
                 var dtImagen = await _databaseService.ExecuteQueryWithParametersAsync(query, parameters);
                 if (dtImagen.Rows.Count > 0 && dtImagen.Rows[0]["Imagen"] != DBNull.Value)
+
+                var paramNames = productosParaCargar
+                    .Select((p, i) => ($"@Id{i}", p.Id))
+                    .ToList();
+                var inClause = string.Join(",", paramNames.Select(t => t.Item1));
+                var query = $"SELECT ItemID, Imagen FROM ItemImage WHERE ItemID IN ({inClause})";
+                var parameters = paramNames.ToDictionary(t => t.Item1, t => (object)t.Item2);
+                var dtImagenes = _databaseService.ExecuteQueryWithParameters(query, parameters);
+                var imagenes = new Dictionary<int, byte[]>();
+                foreach (DataRow row in dtImagenes.Rows)
+
                 {
-                    var imageData = (byte[])dtImagen.Rows[0]["Imagen"];
-                    using var memStream = new MemoryStream(imageData);
-                    using var tempImg = SystemDrawingImage.FromStream(memStream);
-                    producto.Imagen = new Bitmap(tempImg);
-                    producto.ImagenMiniatura = producto.Imagen.GetThumbnailImage(80, 80, null, IntPtr.Zero);
-                    var tempPath = IOPath.Combine(_tempImagePath, $"temp_{producto.Id}.jpg");
-                    producto.RutaImagen = tempPath;
-                    if (File.Exists(tempPath))
-                        File.Delete(tempPath);
-                    using var fileStream = new IOFileStream(tempPath, FileMode.Create, FileAccess.Write);
-                    producto.Imagen.Save(fileStream, ImageFormat.Jpeg);
+                    if (row["Imagen"] != DBNull.Value)
+                        imagenes[(int)row["ItemID"]] = (byte[])row["Imagen"];
                 }
-                else
+
+                foreach (var producto in productosParaCargar)
                 {
-                    var rutaImagenDefecto = IOPath.Combine(_appSettings.DefaultImagePath, "no-image.png");
-                    if (File.Exists(rutaImagenDefecto))
+                    if (imagenes.TryGetValue(producto.Id, out var data))
                     {
-                        using var stream = new FileStream(rutaImagenDefecto, FileMode.Open, FileAccess.Read);
-                        using var tempImg = SystemDrawingImage.FromStream(stream);
+                        using var memStream = new MemoryStream(data);
+                        using var tempImg = SystemDrawingImage.FromStream(memStream);
                         producto.Imagen = new Bitmap(tempImg);
                         producto.ImagenMiniatura = producto.Imagen.GetThumbnailImage(80, 80, null, IntPtr.Zero);
+                        var tempPath = IOPath.Combine(_tempImagePath, $"temp_{producto.Id}.jpg");
+                        producto.RutaImagen = tempPath;
+                        if (File.Exists(tempPath))
+                            File.Delete(tempPath);
+                        using var fileStream = new IOFileStream(tempPath, FileMode.Create, FileAccess.Write);
+                        producto.Imagen.Save(fileStream, ImageFormat.Jpeg);
+                    }
+                    else
+                    {
+                        var rutaImagenDefecto = IOPath.Combine(_appSettings.DefaultImagePath, "no-image.png");
+                        if (File.Exists(rutaImagenDefecto))
+                        {
+                            using var stream = new FileStream(rutaImagenDefecto, FileMode.Open, FileAccess.Read);
+                            using var tempImg = SystemDrawingImage.FromStream(stream);
+                            producto.Imagen = new Bitmap(tempImg);
+                            producto.ImagenMiniatura = producto.Imagen.GetThumbnailImage(80, 80, null, IntPtr.Zero);
+                        }
                     }
                 }
             }
             catch (Exception ex)
             {
                 if (mostrarErrores)
-                    MessageBox.Show($"Error al cargar imagen del producto: {ex.Message}",
+                    MessageBox.Show($"Error al cargar imágenes: {ex.Message}",
                         "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
@@ -1485,9 +1547,7 @@ namespace CargaImagenes.UI
                 {
                     await Task.Run(() =>
                     {
-                        foreach (var p in lista)
-                            if (p.TieneImagen && p.Imagen == null)
-                                CargarImagenProducto(p, false);
+                        CargarImagenesProductos(lista, false);
                         GeneradorCatalogoPdf.GenerarCatálogo(lista, sfd.FileName);
                     });
                 }
