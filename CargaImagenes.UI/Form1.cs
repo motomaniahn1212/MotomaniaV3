@@ -136,6 +136,7 @@ namespace CargaImagenes.UI
             cboPrecios.Items.Add("PrecioA");
             cboPrecios.Items.Add("PrecioB");
             cboPrecios.Items.Add("PrecioC");
+            cboPrecios.Items.Add("Oferta");
             cboPrecios.SelectedIndex = 1;
         }
 
@@ -176,6 +177,7 @@ namespace CargaImagenes.UI
                 "PrecioA" => "i.PriceA",
                 "PrecioB" => "i.PriceB",
                 "PrecioC" => "i.PriceC",
+                "Oferta" => "i.SalePrice",
                 _ => "i.Price",
             };
         }
@@ -746,6 +748,7 @@ namespace CargaImagenes.UI
     SELECT i.ID, i.ItemLookupCode AS Codigo, i.Description AS Descripcion,
            i.Price AS Price, {campoPrecio} AS Precio,
            i.PriceA AS PrecioA, i.PriceB AS PrecioB, i.PriceC AS PrecioC,
+           i.SalePrice, i.SaleStartDate, i.SaleEndDate,
            i.Quantity AS Cantidad,
            i.ExtendedDescription AS DescripcionAmpliada,
            i.SubDescription1 AS Subdescripcion1,
@@ -774,7 +777,10 @@ namespace CargaImagenes.UI
                     }
 
                     AplicarFiltrosAQuery(ref query);
-                    query += "ORDER BY i.ItemLookupCode";
+                    if (cboPrecios.SelectedItem?.ToString() == "Oferta")
+                        query += "ORDER BY i.SaleEndDate DESC";
+                    else
+                        query += "ORDER BY i.ItemLookupCode";
 
                     var dtProductos = _databaseService.ExecuteQueryWithParameters(query, parameters);
                     CargarProductosDesdeDataTable(dtProductos);
@@ -1037,10 +1043,21 @@ namespace CargaImagenes.UI
             string opcionPrecio = cboPrecios.SelectedItem?.ToString();
             switch (opcionPrecio)
             {
-                case "Regular": query += "AND i.Price > 0 "; break;
-                case "PrecioA": query += "AND i.PriceA > 0 "; break;
-                case "PrecioB": query += "AND i.PriceB > 0 "; break;
-                case "PrecioC": query += "AND i.PriceC > 0 "; break;
+                case "Regular":
+                    query += "AND i.Price > 0 ";
+                    break;
+                case "PrecioA":
+                    query += "AND i.PriceA > 0 ";
+                    break;
+                case "PrecioB":
+                    query += "AND i.PriceB > 0 ";
+                    break;
+                case "PrecioC":
+                    query += "AND i.PriceC > 0 ";
+                    break;
+                case "Oferta":
+                    query += "AND i.SalePrice IS NOT NULL AND GETDATE() BETWEEN i.SaleStartDate AND i.SaleEndDate ";
+                    break;
             }
         }
 
@@ -1066,6 +1083,7 @@ namespace CargaImagenes.UI
                 string campoPrecio = ObtenerCampoPrecioSeleccionado();
                 var query = $@"SELECT i.ID, i.ItemLookupCode AS Codigo, i.Description AS Descripcion,
                     i.Price AS Price, {campoPrecio} AS Precio, i.PriceA AS PrecioA, i.PriceB AS PrecioB, i.PriceC AS PrecioC,
+                    i.SalePrice, i.SaleStartDate, i.SaleEndDate,
                     i.Quantity AS Cantidad, i.ExtendedDescription AS DescripcionAmpliada,
                     i.SubDescription1 AS Subdescripcion1, i.SupplierID, i.CategoryID, i.DepartmentID,
                     s.SupplierName, c.Name AS CategoryName, d.Name AS DepartmentName,
@@ -1098,7 +1116,10 @@ namespace CargaImagenes.UI
                     query += "AND i.Quantity > 0 ";
                 else if (chkSinExistencia.Checked && !chkConExistencia.Checked)
                     query += "AND i.Quantity = 0 ";
-                query += "ORDER BY i.Description ASC";
+                if (cboPrecios.SelectedItem?.ToString() == "Oferta")
+                    query += "ORDER BY i.SaleEndDate DESC";
+                else
+                    query += "ORDER BY i.Description ASC";
                 var dtProductos = _databaseService.ExecuteQueryWithParameters(query, parameters);
                 CargarProductosDesdeDataTable(dtProductos);
                 if (_filtrarSoloSeleccionados)
@@ -1141,6 +1162,15 @@ namespace CargaImagenes.UI
                         PrecioA = row["PrecioA"] != DBNull.Value ? Convert.ToDecimal(row["PrecioA"]) : 0m,
                         PrecioB = row["PrecioB"] != DBNull.Value ? Convert.ToDecimal(row["PrecioB"]) : 0m,
                         PrecioC = row["PrecioC"] != DBNull.Value ? Convert.ToDecimal(row["PrecioC"]) : 0m,
+                        PrecioOferta = row.Table.Columns.Contains("SalePrice") && row["SalePrice"] != DBNull.Value
+                            ? Convert.ToDecimal(row["SalePrice"])
+                            : (decimal?)null,
+                        FechaInicioOferta = row.Table.Columns.Contains("SaleStartDate") && row["SaleStartDate"] != DBNull.Value
+                            ? Convert.ToDateTime(row["SaleStartDate"])
+                            : (DateTime?)null,
+                        FechaFinOferta = row.Table.Columns.Contains("SaleEndDate") && row["SaleEndDate"] != DBNull.Value
+                            ? Convert.ToDateTime(row["SaleEndDate"])
+                            : (DateTime?)null,
                         Cantidad = row["Cantidad"] != DBNull.Value ? Convert.ToInt32(row["Cantidad"]) : 0,
                         DescripcionAmpliada = row["DescripcionAmpliada"]?.ToString() ?? string.Empty,
                         Subdescripcion1 = row["Subdescripcion1"]?.ToString() ?? string.Empty,
