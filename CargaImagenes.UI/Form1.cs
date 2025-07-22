@@ -61,6 +61,9 @@ namespace CargaImagenes.UI
             pbProducto.KeyDown += PbProducto_KeyDown;
             pbProducto.MouseDown += PbProducto_MouseDown;
             pbProducto.MouseMove += PbProducto_MouseMove;
+            pbProducto.AllowDrop = true;
+            pbProducto.DragEnter += PbProducto_DragEnter;
+            pbProducto.DragDrop += PbProducto_DragDrop;
             pbProducto.TabStop = false; // Desactivar TabStop en PictureBox para evitar que robe foco
             Icon = new Icon("iconn.ico");
             ConfigurarControlesResponsivos();
@@ -1482,6 +1485,95 @@ namespace CargaImagenes.UI
                         MessageBox.Show($"Error al arrastrar la imagen: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     }
                 }
+            }
+        }
+
+        private void PbProducto_DragEnter(object? sender, DragEventArgs e)
+        {
+            if (e.Data != null && (e.Data.GetDataPresent(DataFormats.FileDrop) ||
+                                   e.Data.GetDataPresent(DataFormats.Bitmap)))
+            {
+                e.Effect = DragDropEffects.Copy;
+            }
+            else
+            {
+                e.Effect = DragDropEffects.None;
+            }
+        }
+
+        private async void PbProducto_DragDrop(object? sender, DragEventArgs e)
+        {
+            try
+            {
+                SystemDrawingImage? img = null;
+                byte[]? imageData = null;
+
+                if (e.Data?.GetDataPresent(DataFormats.FileDrop) == true)
+                {
+                    var files = e.Data.GetData(DataFormats.FileDrop) as string[];
+                    if (files != null && files.Length > 0)
+                    {
+                        imageData = await File.ReadAllBytesAsync(files[0]);
+                        using var ms = new MemoryStream(imageData);
+                        using var tempImg = SystemDrawingImage.FromStream(ms);
+                        img = new Bitmap(tempImg);
+                    }
+                }
+                else if (e.Data?.GetDataPresent(DataFormats.Bitmap) == true)
+                {
+                    var bmp = e.Data.GetData(DataFormats.Bitmap) as SystemDrawingImage;
+                    if (bmp != null)
+                    {
+                        img = new Bitmap(bmp);
+                        using var ms = new MemoryStream();
+                        img.Save(ms, ImageFormat.Jpeg);
+                        imageData = ms.ToArray();
+                    }
+                }
+
+                if (img == null || imageData == null)
+                    return;
+
+                if (dgvProductos.SelectedRows.Count == 0 ||
+                    !(dgvProductos.SelectedRows[0].DataBoundItem is Producto prod))
+                {
+                    MessageBox.Show("Selecciona un producto antes de soltar la imagen.",
+                                    "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return;
+                }
+
+                if (prod.TieneImagen)
+                {
+                    var result = MessageBox.Show(
+                        "El producto ya tiene una imagen. ¿Desea sobreescribirla?",
+                        "Confirmar Sobreescritura",
+                        MessageBoxButtons.YesNo,
+                        MessageBoxIcon.Question);
+                    if (result != DialogResult.Yes)
+                        return;
+                }
+
+                pbProducto.Image = img;
+                prod.Imagen = new Bitmap(img);
+                prod.ImagenMiniatura = prod.Imagen.GetThumbnailImage(80, 80, null, IntPtr.Zero);
+                prod.TieneImagen = true;
+
+                var tempPath = IOPath.Combine(_tempImagePath, $"temp_{prod.Id}.jpg");
+                prod.RutaImagen = tempPath;
+                if (File.Exists(tempPath))
+                    File.Delete(tempPath);
+                using var fileStream = new IOFileStream(tempPath, FileMode.Create, FileAccess.Write);
+                prod.Imagen.Save(fileStream, ImageFormat.Jpeg);
+                await GuardarImagenEnBaseDeDatosAsync(prod.Id, imageData);
+
+                dgvProductos.Refresh();
+                MessageBox.Show("Imagen cargada correctamente.", "Éxito",
+                                MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error al cargar imagen: {ex.Message}", "Error",
+                                MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
