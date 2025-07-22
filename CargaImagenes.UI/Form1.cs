@@ -20,6 +20,7 @@ using IOFileStream = System.IO.FileStream;
 using IOPath = System.IO.Path;
 using SystemDrawingImage = System.Drawing.Image;
 using System.Threading.Tasks;
+using System.Collections.Specialized;
 
 namespace CargaImagenes.UI
 {
@@ -45,6 +46,7 @@ namespace CargaImagenes.UI
         private DataTable? _dtDepartamentos;
         private Producto? _ultimoProductoSeleccionado;
         private readonly Dictionary<int, int> _orderQuantities = new();
+        private Point _dragStartPoint;
         #endregion
 
         #region Constructor e Inicialización
@@ -57,6 +59,8 @@ namespace CargaImagenes.UI
             _tempImagePath = _appSettings.TempImagePath;
             pbProducto.PreviewKeyDown += (s, e) => e.IsInputKey = true;
             pbProducto.KeyDown += PbProducto_KeyDown;
+            pbProducto.MouseDown += PbProducto_MouseDown;
+            pbProducto.MouseMove += PbProducto_MouseMove;
             pbProducto.TabStop = false; // Desactivar TabStop en PictureBox para evitar que robe foco
             Icon = new Icon("iconn.ico");
             ConfigurarControlesResponsivos();
@@ -1327,6 +1331,50 @@ namespace CargaImagenes.UI
             {
                 dgvProductos.Focus(); // Redirigir el foco al DataGridView al presionar flechas
                 e.Handled = false; // Permitir que el DataGridView maneje las flechas
+            }
+        }
+
+        private void PbProducto_MouseDown(object? sender, MouseEventArgs e)
+        {
+            if (e.Button == MouseButtons.Left)
+            {
+                _dragStartPoint = e.Location;
+            }
+        }
+
+        private void PbProducto_MouseMove(object? sender, MouseEventArgs e)
+        {
+            if (e.Button == MouseButtons.Left && pbProducto.Image != null)
+            {
+                var dragRect = new Rectangle(
+                    _dragStartPoint.X - SystemInformation.DragSize.Width / 2,
+                    _dragStartPoint.Y - SystemInformation.DragSize.Height / 2,
+                    SystemInformation.DragSize.Width,
+                    SystemInformation.DragSize.Height);
+
+                if (!dragRect.Contains(e.Location))
+                {
+                    try
+                    {
+                        var data = new DataObject();
+                        data.SetData(DataFormats.Bitmap, pbProducto.Image);
+
+                        var file = IOPath.Combine(_tempImagePath, "drag_temp.jpg");
+                        using (var fs = new IOFileStream(file, FileMode.Create, FileAccess.Write))
+                        {
+                            pbProducto.Image.Save(fs, ImageFormat.Jpeg);
+                        }
+
+                        var files = new StringCollection { file };
+                        data.SetFileDropList(files);
+
+                        pbProducto.DoDragDrop(data, DragDropEffects.Copy);
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show($"Error al arrastrar la imagen: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
+                }
             }
         }
 
