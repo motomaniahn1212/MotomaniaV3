@@ -20,6 +20,7 @@ using IOFileStream = System.IO.FileStream;
 using IOPath = System.IO.Path;
 using SystemDrawingImage = System.Drawing.Image;
 using System.Threading.Tasks;
+using System.Collections.Specialized;
 
 namespace CargaImagenes.UI
 {
@@ -45,6 +46,7 @@ namespace CargaImagenes.UI
         private DataTable? _dtDepartamentos;
         private Producto? _ultimoProductoSeleccionado;
         private readonly Dictionary<int, int> _orderQuantities = new();
+        private Point _dragStartPoint;
         #endregion
 
         #region Constructor e Inicialización
@@ -57,6 +59,8 @@ namespace CargaImagenes.UI
             _tempImagePath = _appSettings.TempImagePath;
             pbProducto.PreviewKeyDown += (s, e) => e.IsInputKey = true;
             pbProducto.KeyDown += PbProducto_KeyDown;
+            pbProducto.MouseDown += PbProducto_MouseDown;
+            pbProducto.MouseMove += PbProducto_MouseMove;
             pbProducto.TabStop = false; // Desactivar TabStop en PictureBox para evitar que robe foco
             Icon = new Icon("iconn.ico");
             ConfigurarControlesResponsivos();
@@ -177,7 +181,16 @@ namespace CargaImagenes.UI
             };
         }
 
-        private static Dictionary<int, bool> GuardarEstadoSeleccion() => new();
+        private Dictionary<int, bool> GuardarEstadoSeleccion()
+        {
+            var dic = new Dictionary<int, bool>();
+            foreach (var p in _productos)
+                dic[p.Id] = p.Seleccionado;
+            foreach (var p in _productosTodos)
+                if (!dic.ContainsKey(p.Id))
+                    dic[p.Id] = p.Seleccionado;
+            return dic;
+        }
 
         private void RestaurarEstadoSeleccion(Dictionary<int, bool> seleccionados)
         {
@@ -1274,6 +1287,7 @@ namespace CargaImagenes.UI
 
                 using var ms = new MemoryStream();
                 prod.Imagen.Save(ms, ImageFormat.Jpeg);
+                var imageData = ms.ToArray();
 
                 var tempPath = IOPath.Combine(_tempImagePath, $"temp_{prod.Id}.jpg");
                 prod.RutaImagen = tempPath;
@@ -1281,6 +1295,7 @@ namespace CargaImagenes.UI
                     File.Delete(tempPath);
                 using var fileStream = new IOFileStream(tempPath, FileMode.Create, FileAccess.Write);
                 prod.Imagen.Save(fileStream, ImageFormat.Jpeg);
+                GuardarImagenEnBaseDeDatos(prod.Id, imageData);
 
                 dgvProductos.Refresh();
                 MessageBox.Show("Imagen pegada y guardada correctamente.", "Éxito",
@@ -1319,6 +1334,50 @@ namespace CargaImagenes.UI
             }
         }
 
+        private void PbProducto_MouseDown(object? sender, MouseEventArgs e)
+        {
+            if (e.Button == MouseButtons.Left)
+            {
+                _dragStartPoint = e.Location;
+            }
+        }
+
+        private void PbProducto_MouseMove(object? sender, MouseEventArgs e)
+        {
+            if (e.Button == MouseButtons.Left && pbProducto.Image != null)
+            {
+                var dragRect = new Rectangle(
+                    _dragStartPoint.X - SystemInformation.DragSize.Width / 2,
+                    _dragStartPoint.Y - SystemInformation.DragSize.Height / 2,
+                    SystemInformation.DragSize.Width,
+                    SystemInformation.DragSize.Height);
+
+                if (!dragRect.Contains(e.Location))
+                {
+                    try
+                    {
+                        var data = new DataObject();
+                        data.SetData(DataFormats.Bitmap, pbProducto.Image);
+
+                        var file = IOPath.Combine(_tempImagePath, "drag_temp.jpg");
+                        using (var fs = new IOFileStream(file, FileMode.Create, FileAccess.Write))
+                        {
+                            pbProducto.Image.Save(fs, ImageFormat.Jpeg);
+                        }
+
+                        var files = new StringCollection { file };
+                        data.SetFileDropList(files);
+
+                        pbProducto.DoDragDrop(data, DragDropEffects.Copy);
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show($"Error al arrastrar la imagen: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
+                }
+            }
+        }
+
         private void GuardarImagenEnBaseDeDatos(int itemId, byte[] imageData)
         {
             try
@@ -1354,9 +1413,16 @@ namespace CargaImagenes.UI
             try
             {
                 CargarProductos();
-                var lista = _productos.Any(p => p.Seleccionado)
-                    ? _productos.Where(p => p.Seleccionado).ToList()
-                    : _productos.ToList();
+                var lista = _productos.Where(p => p.Seleccionado).ToList();
+                if (lista.Count == 0)
+                {
+                    MessageBox.Show(
+                        "Seleccione al menos un producto antes de generar el PDF.",
+                        "Aviso",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Information);
+                    return;
+                }
                 string opcionPrecio = cboPrecios.SelectedItem?.ToString() ?? "Desconocido";
                 Console.WriteLine($"Filtro de precio seleccionado: {opcionPrecio}");
                 foreach (var prod in lista)
