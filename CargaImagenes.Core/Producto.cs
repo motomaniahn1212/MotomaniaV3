@@ -30,6 +30,9 @@ namespace CargaImagenes.Core
         public decimal PrecioA { get; set; }
         public decimal PrecioB { get; set; }
         public decimal PrecioC { get; set; }
+        public decimal? PrecioOferta { get; set; }
+        public DateTime? FechaInicioOferta { get; set; }
+        public DateTime? FechaFinOferta { get; set; }
         public int Cantidad { get; set; }
         public int OrderQuantity { get; set; } = 0;
 
