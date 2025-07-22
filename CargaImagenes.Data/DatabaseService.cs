@@ -14,6 +14,15 @@ namespace CargaImagenes.Data
             _connectionString = config.ConnectionString;
         }
 
+        private static void AddParameters(SqlCommand command, IDictionary<string, object> parameters)
+        {
+            if (parameters.ContainsKey("CategoryID") && parameters["CategoryID"] == null)
+                throw new ArgumentException("CategoryID no puede ser nulo.", nameof(parameters));
+
+            foreach (var (key, value) in parameters)
+                command.Parameters.AddWithValue(key, value ?? DBNull.Value);
+        }
+
         public DataTable ExecuteQuery(string query)
         {
             using var connection = new SqlConnection(_connectionString);
@@ -33,12 +42,7 @@ namespace CargaImagenes.Data
 
             if (parameters != null)
             {
-                // Validar parámetros requeridos
-                if (parameters.ContainsKey("CategoryID") && parameters["CategoryID"] == null)
-                    throw new ArgumentException("CategoryID no puede ser nulo.", nameof(parameters));
-
-                foreach (var (key, value) in parameters)
-                    command.Parameters.AddWithValue(key, value ?? DBNull.Value);
+                AddParameters(command, parameters);
             }
 
             using var adapter = new SqlDataAdapter(command);
@@ -56,11 +60,7 @@ namespace CargaImagenes.Data
 
             if (parameters != null)
             {
-                if (parameters.ContainsKey("CategoryID") && parameters["CategoryID"] == null)
-                    throw new ArgumentException("CategoryID no puede ser nulo.", nameof(parameters));
-
-                foreach (var (key, value) in parameters)
-                    command.Parameters.AddWithValue(key, value ?? DBNull.Value);
+                AddParameters(command, parameters);
             }
 
             connection.Open();
@@ -74,11 +74,7 @@ namespace CargaImagenes.Data
 
             if (parameters != null)
             {
-                if (parameters.ContainsKey("CategoryID") && parameters["CategoryID"] == null)
-                    throw new ArgumentException("CategoryID no puede ser nulo.", nameof(parameters));
-
-                foreach (var (key, value) in parameters)
-                    command.Parameters.AddWithValue(key, value ?? DBNull.Value);
+                AddParameters(command, parameters);
             }
 
             connection.Open();
