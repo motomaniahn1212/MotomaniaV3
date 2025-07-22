@@ -33,7 +33,11 @@ namespace CargaImagenes.UI
             var services = new ServiceCollection();
 
             // 2.1) Inyecta la configuración de conexión
-            services.AddSingleton(new ConnectionConfig { ConnectionString = connectionString });
+            services.AddSingleton(new ConnectionConfig
+            {
+                ConnectionString = connectionString,
+                CommandTimeout = 30
+            });
 
             // 2.2) Registra tu DatabaseService
             services.AddTransient<IDatabaseService, DatabaseService>();
