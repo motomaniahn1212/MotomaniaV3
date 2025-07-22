@@ -10,7 +10,6 @@ using CargaImagenes.Data;
 using iText.IO.Font.Constants;
 using iText.Kernel.Colors;
 using iText.Kernel.Font;
-using iText.Kernel.Geom;
 using iText.Kernel.Pdf;
 using iText.Layout;
 using iText.Layout.Element;
@@ -1610,7 +1609,7 @@ namespace CargaImagenes.UI
             {
                 writer = new PdfWriter(rutaArchivo);
                 pdf = new PdfDocument(writer);
-                doc = new Document(pdf, PageSize.A4);
+                doc = new Document(pdf, iText.Kernel.Geom.PageSize.A4);
                 doc.SetMargins(20, 20, 20, 20);
                 var fontB = PdfFontFactory.CreateFont(StandardFonts.HELVETICA_BOLD);
                 var font = PdfFontFactory.CreateFont(StandardFonts.HELVETICA);

@@ -3,7 +3,6 @@ using System.Drawing.Imaging;
 using iText.IO.Font.Constants;
 using iText.IO.Image;
 using iText.Kernel.Font;
-using iText.Kernel.Geom;
 using iText.Kernel.Pdf;
 using iText.Layout;
 using iText.Layout.Borders;
@@ -55,14 +54,14 @@ namespace CargaImagenes.Core
             // ──────────── 3. Crear documento ────────────
             using var writer = new PdfWriter(rutaSalida);
             using var pdf = new PdfDocument(writer);
-            using var doc = new Document(pdf, PageSize.A4);
+            using var doc = new Document(pdf, iText.Kernel.Geom.PageSize.A4);
 
             doc.SetMargins(margenPt, margenPt, margenPt, margenPt);
 
             var fontBold = PdfFontFactory.CreateFont(StandardFonts.HELVETICA_BOLD);
             var fontRegular = PdfFontFactory.CreateFont(StandardFonts.HELVETICA);
 
-            float usableWidth = PageSize.A4.GetWidth() - 2 * margenPt;
+            float usableWidth = iText.Kernel.Geom.PageSize.A4.GetWidth() - 2 * margenPt;
 
             int índice = 0, total = lista.Count;
             int procesados = 0;
