@@ -1358,7 +1358,7 @@ namespace CargaImagenes.UI
                         var data = new DataObject();
                         data.SetData(DataFormats.Bitmap, pbProducto.Image);
 
-                        var file = IOPath.Combine(_tempImagePath, "drag_temp.jpg");
+                        var file = IOPath.Combine(_tempImagePath, $"drag_{Guid.NewGuid()}.jpg");
                         using (var fs = new IOFileStream(file, FileMode.Create, FileAccess.Write))
                         {
                             pbProducto.Image.Save(fs, ImageFormat.Jpeg);
