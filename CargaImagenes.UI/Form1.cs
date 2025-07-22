@@ -561,7 +561,9 @@ namespace CargaImagenes.UI
                 _ultimoProductoSeleccionado = producto;
                 // No establecer foco en pbProducto, mantenerlo en DataGridView
             }
-            dgvProductos.Focus(); // Siempre devolver el foco al DataGridView después de la selección
+            // Evitar que el DataGridView robe el foco mientras se escribe en el buscador
+            if (!txtBuscador.Focused)
+                dgvProductos.Focus(); // Mantener foco en DataGridView cuando corresponda
         }
 
         private void DgvProductos_CellContentClick(object? sender, DataGridViewCellEventArgs e)
