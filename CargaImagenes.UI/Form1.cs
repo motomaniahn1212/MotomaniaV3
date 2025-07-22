@@ -1283,6 +1283,7 @@ namespace CargaImagenes.UI
 
                 using var ms = new MemoryStream();
                 prod.Imagen.Save(ms, ImageFormat.Jpeg);
+                var imageData = ms.ToArray();
 
                 var tempPath = IOPath.Combine(_tempImagePath, $"temp_{prod.Id}.jpg");
                 prod.RutaImagen = tempPath;
@@ -1290,6 +1291,7 @@ namespace CargaImagenes.UI
                     File.Delete(tempPath);
                 using var fileStream = new IOFileStream(tempPath, FileMode.Create, FileAccess.Write);
                 prod.Imagen.Save(fileStream, ImageFormat.Jpeg);
+                GuardarImagenEnBaseDeDatos(prod.Id, imageData);
 
                 dgvProductos.Refresh();
                 MessageBox.Show("Imagen pegada y guardada correctamente.", "Éxito",
