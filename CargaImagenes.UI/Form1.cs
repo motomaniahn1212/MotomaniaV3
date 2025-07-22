@@ -68,14 +68,13 @@ namespace CargaImagenes.UI
             ConfigurarControlesExistentes();
             ConfigurarDataGridView();
             CargarComboPrecios();
-            CargarDatosIniciales();
             Load += Form1_Load;
             FormClosing += Form1_FormClosing;
             KeyPreview = true; // Permitir que el formulario capture eventos de teclado globales
             KeyDown += Form1_KeyDown; // Manejar teclas a nivel de formulario
         }
 
-        private void Form1_Load(object? sender, EventArgs e)
+        private async void Form1_Load(object? sender, EventArgs e)
         {
             ConfigurarColumnasDataGridView();
             pbProducto.SizeMode = PictureBoxSizeMode.Zoom;
@@ -84,6 +83,7 @@ namespace CargaImagenes.UI
             {
                 Size = new Size(cfg.Width, cfg.Height);
             }
+            await CargarDatosInicialesAsync();
             dgvProductos.Focus(); // Establecer foco inicial en DataGridView
             UpdateCounters();    // Mostrar contador de productos seleccionados desde el inicio
         }
@@ -200,22 +200,22 @@ namespace CargaImagenes.UI
                     producto.Seleccionado = seleccionado;
         }
 
-        private void CargarDatosIniciales()
+        private async Task CargarDatosInicialesAsync()
         {
-            CargarProveedores();
-            CargarCategorias();
-            CargarDepartamentos();
-            CargarProductos();
+            await CargarProveedoresAsync();
+            await CargarCategoriasAsync();
+            await CargarDepartamentosAsync();
+            await CargarProductosAsync();
         }
 
-        private void CboDepartamentos_SelectedIndexChanged(object? sender, EventArgs e)
+        private async void CboDepartamentos_SelectedIndexChanged(object? sender, EventArgs e)
         {
             try
             {
                 _suspendCategoriaEvent = true;
-                ActualizarCategoriasPorDepartamento();
+                await ActualizarCategoriasPorDepartamentoAsync();
                 _suspendCategoriaEvent = false;
-                FiltrarProductos();
+                await FiltrarProductosAsync();
             }
             catch (Exception ex)
             {
@@ -224,7 +224,7 @@ namespace CargaImagenes.UI
             }
         }
 
-        private void ActualizarCategoriasPorDepartamento()
+        private async Task ActualizarCategoriasPorDepartamentoAsync()
         {
             int? depId = cboDepDetalle.SelectedItem is DataRowView row
                 ? (int?)row["ID"]
@@ -240,8 +240,8 @@ namespace CargaImagenes.UI
                 ? new() { ["@DeptID"] = depId.Value }
                 : null;
             DataTable dtCat = p != null
-                ? _databaseService.ExecuteQueryWithParameters(sql, p)
-                : _databaseService.ExecuteQuery(sql);
+                ? await _databaseService.ExecuteQueryWithParametersAsync(sql, p)
+                : await _databaseService.ExecuteQueryAsync(sql);
             CargarComboDesdeDataTable(cboCategorias, dtCat, "Name", "-Todas las categorías-");
         }
 
@@ -265,18 +265,18 @@ namespace CargaImagenes.UI
             ConfigurarCamposNumericosYTexto();
             ConfigurarCheckboxes();
             txtBuscador.TextChanged += TxtBuscador_TextChanged;
-            cboProveedores.SelectedIndexChanged += (s, e) => FiltrarProductos();
-            cboCategorias.SelectedIndexChanged += (s, e) => FiltrarProductos();
-            cboPrecios.SelectedIndexChanged += (s, e) => FiltrarProductos();
-            cboDepDetalle.SelectedIndexChanged += (s, e) => FiltrarProductos();
+            cboProveedores.SelectedIndexChanged += async (s, e) => await FiltrarProductosAsync();
+            cboCategorias.SelectedIndexChanged += async (s, e) => await FiltrarProductosAsync();
+            cboPrecios.SelectedIndexChanged += async (s, e) => await FiltrarProductosAsync();
+            cboDepDetalle.SelectedIndexChanged += async (s, e) => await FiltrarProductosAsync();
         }
 
-        private void CboCategorias_SelectedIndexChanged(object? sender, EventArgs e)
+        private async void CboCategorias_SelectedIndexChanged(object? sender, EventArgs e)
         {
             if (_suspendCategoriaEvent) return;
             try
             {
-                FiltrarProductos();
+                await FiltrarProductosAsync();
             }
             catch (Exception ex)
             {
@@ -363,30 +363,30 @@ namespace CargaImagenes.UI
 
         private void ConfigurarCheckboxes()
         {
-            chkConImagen.CheckedChanged += (s, e) =>
+            chkConImagen.CheckedChanged += async (s, e) =>
             {
                 _filtrarConImagen = chkConImagen.Checked;
-                FiltrarProductos();
+                await FiltrarProductosAsync();
             };
-            chkSinImagen.CheckedChanged += (s, e) =>
+            chkSinImagen.CheckedChanged += async (s, e) =>
             {
                 _filtrarSinImagen = chkSinImagen.Checked;
-                FiltrarProductos();
+                await FiltrarProductosAsync();
             };
-            chkConExistencia.CheckedChanged += (s, e) => FiltrarProductos();
-            chkSinExistencia.CheckedChanged += (s, e) => FiltrarProductos();
-            chkSoloSeleccionados.CheckedChanged += (s, e) =>
+            chkConExistencia.CheckedChanged += async (s, e) => await FiltrarProductosAsync();
+            chkSinExistencia.CheckedChanged += async (s, e) => await FiltrarProductosAsync();
+            chkSoloSeleccionados.CheckedChanged += async (s, e) =>
             {
                 _filtrarSoloSeleccionados = chkSoloSeleccionados.Checked;
-                FiltrarProductos();
+                await FiltrarProductosAsync();
             };
         }
 
-        private void FiltrarProductos()
+        private async Task FiltrarProductosAsync()
         {
             SaveOrderQuantities();
             ActualizarFiltros();
-            CargarProductos();
+            await CargarProductosAsync();
             dgvProductos.Refresh();
         }
         #endregion
@@ -543,14 +543,14 @@ namespace CargaImagenes.UI
             }
         }
 
-        private void DgvProductos_SelectionChanged(object? sender, EventArgs e)
+        private async void DgvProductos_SelectionChanged(object? sender, EventArgs e)
         {
             if (dgvProductos.SelectedRows.Count > 0 &&
                 dgvProductos.SelectedRows[0].DataBoundItem is Producto producto)
             {
                 ActualizarCamposDetalle(producto);
                 if (producto.TieneImagen && producto.Imagen == null)
-                    CargarImagenProducto(producto);
+                    await CargarImagenProductoAsync(producto);
                 pbProducto.Image = producto.Imagen;
                 if (_ultimoProductoSeleccionado != null && _ultimoProductoSeleccionado.Id == producto.Id)
                     return;
@@ -639,7 +639,7 @@ namespace CargaImagenes.UI
             }
         }
 
-        private void BtnLimpiarFiltros_Click(object? sender, EventArgs e)
+        private async void BtnLimpiarFiltros_Click(object? sender, EventArgs e)
         {
             SaveOrderQuantities();
             if (cboProveedores.Items.Count > 0)
@@ -663,7 +663,7 @@ namespace CargaImagenes.UI
             _departamentosFiltro.Clear();
             chkSoloSeleccionados.Checked = false;
             _filtrarSoloSeleccionados = false;
-            CargarProductos();
+            await CargarProductosAsync();
             dgvProductos.Refresh();
             dgvProductos.Focus(); // Mantener foco en DataGridView después de limpiar filtros
         }
@@ -698,7 +698,7 @@ namespace CargaImagenes.UI
                     File.Delete(tempPath);
                 using var fileStream = new IOFileStream(tempPath, FileMode.Create, FileAccess.Write);
                 await Task.Run(() => producto.Imagen.Save(fileStream, ImageFormat.Jpeg));
-                GuardarImagenEnBaseDeDatos(producto.Id, imageData);
+                await GuardarImagenEnBaseDeDatosAsync(producto.Id, imageData);
                 pbProducto.Image = new Bitmap(producto.Imagen);
                 dgvProductos.Refresh();
                 MessageBox.Show("Imagen actualizada correctamente", "Éxito", MessageBoxButtons.OK, MessageBoxIcon.Information);
@@ -712,17 +712,18 @@ namespace CargaImagenes.UI
         #endregion
 
         #region Eventos de Búsqueda
-        private void TxtBuscador_TextChanged(object? sender, EventArgs e)
+        private async void TxtBuscador_TextChanged(object? sender, EventArgs e)
         {
             _textoBusqueda = txtBuscador.Text.Trim();
-            Task.Delay(300).ContinueWith(t => BuscarProductos());
+            await Task.Delay(300);
+            await BuscarProductosAsync();
         }
 
-        private void BuscarProductos()
+        private async Task BuscarProductosAsync()
         {
             if (InvokeRequired)
             {
-                BeginInvoke(BuscarProductos);
+                BeginInvoke(new Action(async () => await BuscarProductosAsync()));
                 return;
             }
             try
@@ -736,7 +737,7 @@ namespace CargaImagenes.UI
                 // 2) Si el texto de búsqueda está vacío, recargar todos los productos
                 if (string.IsNullOrWhiteSpace(_textoBusqueda))
                 {
-                    CargarProductos();
+                    await CargarProductosAsync();
                 }
                 else
                 {
@@ -782,7 +783,7 @@ namespace CargaImagenes.UI
                     else
                         query += "ORDER BY i.ItemLookupCode";
 
-                    var dtProductos = _databaseService.ExecuteQueryWithParameters(query, parameters);
+                    var dtProductos = await _databaseService.ExecuteQueryWithParametersAsync(query, parameters);
                     CargarProductosDesdeDataTable(dtProductos);
 
                     if (_filtrarSoloSeleccionados)
@@ -977,11 +978,11 @@ namespace CargaImagenes.UI
         #endregion
 
         #region Carga de Datos de Catálogos
-        private void CargarProveedores()
+        private async Task CargarProveedoresAsync()
         {
             try
             {
-                _dtProveedores = _databaseService.ExecuteQuery("SELECT ID, SupplierName FROM Supplier ORDER BY SupplierName");
+                _dtProveedores = await _databaseService.ExecuteQueryAsync("SELECT ID, SupplierName FROM Supplier ORDER BY SupplierName");
                 CargarComboDesdeDataTable(cboProveedores, _dtProveedores, "SupplierName", "-Todos los proveedores-");
             }
             catch (Exception ex)
@@ -990,11 +991,11 @@ namespace CargaImagenes.UI
             }
         }
 
-        private void CargarCategorias()
+        private async Task CargarCategoriasAsync()
         {
             try
             {
-                _dtCategorias = _databaseService.ExecuteQuery("SELECT ID, Name FROM Category ORDER BY Name");
+                _dtCategorias = await _databaseService.ExecuteQueryAsync("SELECT ID, Name FROM Category ORDER BY Name");
                 CargarComboDesdeDataTable(cboCategorias, _dtCategorias, "Name", "-Todas las categorías-");
             }
             catch (Exception ex)
@@ -1003,11 +1004,11 @@ namespace CargaImagenes.UI
             }
         }
 
-        private void CargarDepartamentos()
+        private async Task CargarDepartamentosAsync()
         {
             try
             {
-                _dtDepartamentos = _databaseService.ExecuteQuery("SELECT ID, Name FROM Department ORDER BY Name");
+                _dtDepartamentos = await _databaseService.ExecuteQueryAsync("SELECT ID, Name FROM Department ORDER BY Name");
                 CargarComboDesdeDataTable(cboDepDetalle, _dtDepartamentos, "Name", "-Todos los departamentos-");
             }
             catch (Exception ex)
@@ -1073,7 +1074,7 @@ namespace CargaImagenes.UI
             return terminos;
         }
 
-        private void CargarProductos()
+        private async Task CargarProductosAsync()
         {
             try
             {
@@ -1120,7 +1121,7 @@ namespace CargaImagenes.UI
                     query += "ORDER BY i.SaleEndDate DESC";
                 else
                     query += "ORDER BY i.Description ASC";
-                var dtProductos = _databaseService.ExecuteQueryWithParameters(query, parameters);
+                var dtProductos = await _databaseService.ExecuteQueryWithParametersAsync(query, parameters);
                 CargarProductosDesdeDataTable(dtProductos);
                 if (_filtrarSoloSeleccionados)
                 {
@@ -1204,13 +1205,13 @@ namespace CargaImagenes.UI
         #endregion
 
         #region Manejo de Imágenes
-        private void CargarImagenProducto(Producto producto, bool mostrarErrores = true)
+        private async Task CargarImagenProductoAsync(Producto producto, bool mostrarErrores = true)
         {
             try
             {
                 const string query = "SELECT Imagen FROM ItemImage WHERE ItemID = @ItemID";
                 var parameters = new Dictionary<string, object> { ["@ItemID"] = producto.Id };
-                var dtImagen = _databaseService.ExecuteQueryWithParameters(query, parameters);
+                var dtImagen = await _databaseService.ExecuteQueryWithParametersAsync(query, parameters);
                 if (dtImagen.Rows.Count > 0 && dtImagen.Rows[0]["Imagen"] != DBNull.Value)
                 {
                     var imageData = (byte[])dtImagen.Rows[0]["Imagen"];
@@ -1245,6 +1246,9 @@ namespace CargaImagenes.UI
             }
         }
 
+        private void CargarImagenProducto(Producto producto, bool mostrarErrores = true)
+            => CargarImagenProductoAsync(producto, mostrarErrores).GetAwaiter().GetResult();
+
         private void CopyImageToClipboard()
         {
             if (pbProducto.Image != null)
@@ -1271,7 +1275,7 @@ namespace CargaImagenes.UI
             }
         }
 
-        private void PasteImageFromClipboard()
+        private async void PasteImageFromClipboard()
         {
             if (!Clipboard.ContainsImage())
             {
@@ -1327,7 +1331,7 @@ namespace CargaImagenes.UI
                     File.Delete(tempPath);
                 using var fileStream = new IOFileStream(tempPath, FileMode.Create, FileAccess.Write);
                 prod.Imagen.Save(fileStream, ImageFormat.Jpeg);
-                GuardarImagenEnBaseDeDatos(prod.Id, imageData);
+                await GuardarImagenEnBaseDeDatosAsync(prod.Id, imageData);
 
                 dgvProductos.Refresh();
                 MessageBox.Show("Imagen pegada y guardada correctamente.", "Éxito",
@@ -1410,13 +1414,13 @@ namespace CargaImagenes.UI
             }
         }
 
-        private void GuardarImagenEnBaseDeDatos(int itemId, byte[] imageData)
+        private async Task GuardarImagenEnBaseDeDatosAsync(int itemId, byte[] imageData)
         {
             try
             {
                 const string checkQuery = "SELECT COUNT(*) FROM ItemImage WHERE ItemID = @ItemID";
                 var pCheck = new Dictionary<string, object> { ["@ItemID"] = itemId };
-                var result = _databaseService.ExecuteScalar(checkQuery, pCheck);
+                var result = await _databaseService.ExecuteScalarAsync(checkQuery, pCheck);
                 int count = result != null ? Convert.ToInt32(result) : 0;
 
                 string query = count > 0
@@ -1429,7 +1433,7 @@ namespace CargaImagenes.UI
                     ["@Imagen"] = imageData
                 };
 
-                _databaseService.ExecuteNonQuery(query, parameters);
+                await _databaseService.ExecuteNonQueryAsync(query, parameters);
             }
             catch (Exception ex)
             {
@@ -1444,7 +1448,7 @@ namespace CargaImagenes.UI
         {
             try
             {
-                CargarProductos();
+                await CargarProductosAsync();
                 var lista = _productos.Where(p => p.Seleccionado).ToList();
                 if (lista.Count == 0)
                 {
