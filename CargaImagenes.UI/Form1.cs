@@ -84,7 +84,8 @@ namespace CargaImagenes.UI
                 Size = new Size(cfg.Width, cfg.Height);
             }
             await CargarDatosInicialesAsync();
-            dgvProductos.Focus(); // Establecer foco inicial en DataGridView
+            if (!txtBuscador.Focused)
+                dgvProductos.Focus(); // Establecer foco inicial en DataGridView
             UpdateCounters();    // Mostrar contador de productos seleccionados desde el inicio
         }
         #endregion
@@ -583,7 +584,8 @@ namespace CargaImagenes.UI
                     UpdateCounters();
                 }
             }
-            dgvProductos.Focus(); // Mantener el foco en DataGridView después de hacer clic
+            if (!txtBuscador.Focused)
+                dgvProductos.Focus(); // Mantener el foco en DataGridView después de hacer clic
         }
 
         private void DgvProductos_KeyDown(object? sender, KeyEventArgs e)
@@ -671,7 +673,8 @@ namespace CargaImagenes.UI
             _filtrarSoloSeleccionados = false;
             await CargarProductosAsync();
             dgvProductos.Refresh();
-            dgvProductos.Focus(); // Mantener foco en DataGridView después de limpiar filtros
+            if (!txtBuscador.Focused)
+                dgvProductos.Focus(); // Mantener foco en DataGridView después de limpiar filtros
         }
 
         private async void BtnCargarImagen_Click(object? sender, EventArgs e)
@@ -713,7 +716,8 @@ namespace CargaImagenes.UI
             {
                 MessageBox.Show($"Error al cargar imagen: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
-            dgvProductos.Focus(); // Devolver foco al DataGridView después de cargar imagen
+            if (!txtBuscador.Focused)
+                dgvProductos.Focus(); // Devolver foco al DataGridView después de cargar imagen
         }
         #endregion
 
@@ -815,7 +819,8 @@ namespace CargaImagenes.UI
                 }
                 else
                 {
-                    dgvProductos.Focus();
+                    if (!txtBuscador.Focused)
+                        dgvProductos.Focus();
                 }
             }
             catch (Exception ex)
@@ -953,7 +958,8 @@ namespace CargaImagenes.UI
             UpdateCounters();
             prod.Seleccionado = marcado;
             dgvProductos.InvalidateRow(e.RowIndex);
-            dgvProductos.Focus(); // Mantener foco en DataGridView después de editar
+            if (!txtBuscador.Focused)
+                dgvProductos.Focus(); // Mantener foco en DataGridView después de editar
         }
 
         private void DgvProductos_CellFormatting(object? sender, DataGridViewCellFormattingEventArgs e)
@@ -1169,7 +1175,8 @@ namespace CargaImagenes.UI
                 }
                 RestaurarEstadoSeleccion(seleccionados);
                 SaveOrderQuantities();
-                dgvProductos.Focus(); // Mantener foco en DataGridView después de cargar productos
+                if (!txtBuscador.Focused)
+                    dgvProductos.Focus(); // Mantener foco en DataGridView después de cargar productos
             }
             catch (Exception ex)
             {
@@ -1406,7 +1413,8 @@ namespace CargaImagenes.UI
         {
             // No hacer nada con el foco, solo copiar la imagen si se hace clic
             CopyImageToClipboard();
-            dgvProductos.Focus(); // Devolver foco al DataGridView después de hacer clic en PictureBox
+            if (!txtBuscador.Focused)
+                dgvProductos.Focus(); // Devolver foco al DataGridView después de hacer clic en PictureBox
         }
 
         private void PbProducto_KeyDown(object? sender, KeyEventArgs e)
@@ -1423,7 +1431,8 @@ namespace CargaImagenes.UI
             }
             else if (e.KeyCode == Keys.Up || e.KeyCode == Keys.Down || e.KeyCode == Keys.Left || e.KeyCode == Keys.Right)
             {
-                dgvProductos.Focus(); // Redirigir el foco al DataGridView al presionar flechas
+                if (!txtBuscador.Focused)
+                    dgvProductos.Focus(); // Redirigir el foco al DataGridView al presionar flechas
                 e.Handled = false; // Permitir que el DataGridView maneje las flechas
             }
         }
@@ -1565,7 +1574,8 @@ namespace CargaImagenes.UI
                 MessageBox.Show($"Error general al generar catálogo:\n{ex.Message}",
                                 "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
-            dgvProductos.Focus(); // Devolver foco al DataGridView después de generar PDF
+            if (!txtBuscador.Focused)
+                dgvProductos.Focus(); // Devolver foco al DataGridView después de generar PDF
         }
 
         private void BtnLimpiarSeleccion_Click(object? sender, EventArgs e)
@@ -1581,7 +1591,8 @@ namespace CargaImagenes.UI
             {
                 MessageBox.Show($"Error al limpiar selección: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
-            dgvProductos.Focus(); // Mantener foco en DataGridView después de limpiar selección
+            if (!txtBuscador.Focused)
+                dgvProductos.Focus(); // Mantener foco en DataGridView después de limpiar selección
         }
         #endregion
 
@@ -1604,7 +1615,8 @@ namespace CargaImagenes.UI
             {
                 MessageBox.Show($"Error al seleccionar todos los productos: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
-            dgvProductos.Focus(); // Mantener foco en DataGridView después de seleccionar todo
+            if (!txtBuscador.Focused)
+                dgvProductos.Focus(); // Mantener foco en DataGridView después de seleccionar todo
         }
 
         private void Form1_KeyDown(object? sender, KeyEventArgs e)
@@ -1689,7 +1701,8 @@ namespace CargaImagenes.UI
             {
                 _isGeneratingCotizacion = false;
             }
-            dgvProductos.Focus(); // Devolver foco al DataGridView después de generar cotización
+            if (!txtBuscador.Focused)
+                dgvProductos.Focus(); // Devolver foco al DataGridView después de generar cotización
         }
 
         private static void GenerarCotizacionPdf(List<Producto> productos, string rutaArchivo)
