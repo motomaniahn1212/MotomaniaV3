@@ -1,4 +1,5 @@
 ﻿using System.Data;
+using System.Threading.Tasks;
 using Microsoft.Data.SqlClient;
 
 namespace CargaImagenes.Data
@@ -93,6 +94,75 @@ namespace CargaImagenes.Data
 
             connection.Open();
             return command.ExecuteScalar();
+        }
+
+        public async Task<DataTable> ExecuteQueryAsync(string query)
+        {
+            using var connection = new SqlConnection(_connectionString);
+            using var command = new SqlCommand(query, connection);
+
+            await connection.OpenAsync();
+            using var reader = await command.ExecuteReaderAsync();
+            var dt = new DataTable();
+            dt.Load(reader);
+            return dt;
+        }
+
+        public async Task<DataTable> ExecuteQueryWithParametersAsync(string query, Dictionary<string, object>? parameters = null)
+        {
+            using var connection = new SqlConnection(_connectionString);
+            using var command = new SqlCommand(query, connection);
+
+            if (parameters != null)
+            {
+                if (parameters.ContainsKey("CategoryID") && parameters["CategoryID"] == null)
+                    throw new ArgumentException("CategoryID no puede ser nulo.", nameof(parameters));
+
+                foreach (var (key, value) in parameters)
+                    command.Parameters.AddWithValue(key, value ?? DBNull.Value);
+            }
+
+            await connection.OpenAsync();
+            using var reader = await command.ExecuteReaderAsync();
+            var dt = new DataTable();
+            dt.Load(reader);
+            return dt;
+        }
+
+        public async Task<int> ExecuteNonQueryAsync(string query, Dictionary<string, object>? parameters = null)
+        {
+            using var connection = new SqlConnection(_connectionString);
+            using var command = new SqlCommand(query, connection);
+
+            if (parameters != null)
+            {
+                if (parameters.ContainsKey("CategoryID") && parameters["CategoryID"] == null)
+                    throw new ArgumentException("CategoryID no puede ser nulo.", nameof(parameters));
+
+                foreach (var (key, value) in parameters)
+                    command.Parameters.AddWithValue(key, value ?? DBNull.Value);
+            }
+
+            await connection.OpenAsync();
+            return await command.ExecuteNonQueryAsync();
+        }
+
+        public async Task<object?> ExecuteScalarAsync(string query, Dictionary<string, object>? parameters = null)
+        {
+            using var connection = new SqlConnection(_connectionString);
+            using var command = new SqlCommand(query, connection);
+
+            if (parameters != null)
+            {
+                if (parameters.ContainsKey("CategoryID") && parameters["CategoryID"] == null)
+                    throw new ArgumentException("CategoryID no puede ser nulo.", nameof(parameters));
+
+                foreach (var (key, value) in parameters)
+                    command.Parameters.AddWithValue(key, value ?? DBNull.Value);
+            }
+
+            await connection.OpenAsync();
+            return await command.ExecuteScalarAsync();
         }
     }
 }
