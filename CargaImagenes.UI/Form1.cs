@@ -686,7 +686,8 @@ namespace CargaImagenes.UI
             {
                 byte[] imageData = await File.ReadAllBytesAsync(openFileDialog.FileName);
                 using var displayStream = new MemoryStream(imageData);
-                producto.Imagen = SystemDrawingImage.FromStream(displayStream);
+                using var tempImg = SystemDrawingImage.FromStream(displayStream);
+                producto.Imagen = new Bitmap(tempImg);
                 producto.ImagenMiniatura = producto.Imagen.GetThumbnailImage(80, 80, null, IntPtr.Zero);
                 producto.TieneImagen = true;
                 var tempPath = IOPath.Combine(_tempImagePath, $"temp_{producto.Id}.jpg");
@@ -696,7 +697,7 @@ namespace CargaImagenes.UI
                 using var fileStream = new IOFileStream(tempPath, FileMode.Create, FileAccess.Write);
                 await Task.Run(() => producto.Imagen.Save(fileStream, ImageFormat.Jpeg));
                 GuardarImagenEnBaseDeDatos(producto.Id, imageData);
-                pbProducto.Image = producto.Imagen;
+                pbProducto.Image = new Bitmap(producto.Imagen);
                 dgvProductos.Refresh();
                 MessageBox.Show("Imagen actualizada correctamente", "Éxito", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
@@ -1184,7 +1185,8 @@ namespace CargaImagenes.UI
                 {
                     var imageData = (byte[])dtImagen.Rows[0]["Imagen"];
                     using var memStream = new MemoryStream(imageData);
-                    producto.Imagen = SystemDrawingImage.FromStream(memStream);
+                    using var tempImg = SystemDrawingImage.FromStream(memStream);
+                    producto.Imagen = new Bitmap(tempImg);
                     producto.ImagenMiniatura = producto.Imagen.GetThumbnailImage(80, 80, null, IntPtr.Zero);
                     var tempPath = IOPath.Combine(_tempImagePath, $"temp_{producto.Id}.jpg");
                     producto.RutaImagen = tempPath;
@@ -1199,7 +1201,8 @@ namespace CargaImagenes.UI
                     if (File.Exists(rutaImagenDefecto))
                     {
                         using var stream = new FileStream(rutaImagenDefecto, FileMode.Open, FileAccess.Read);
-                        producto.Imagen = SystemDrawingImage.FromStream(stream);
+                        using var tempImg = SystemDrawingImage.FromStream(stream);
+                        producto.Imagen = new Bitmap(tempImg);
                         producto.ImagenMiniatura = producto.Imagen.GetThumbnailImage(80, 80, null, IntPtr.Zero);
                     }
                 }
