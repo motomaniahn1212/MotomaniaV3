@@ -776,7 +776,7 @@ namespace CargaImagenes.UI
                         parameters[param] = $"%{terminos[i]}%";
                     }
 
-                    AplicarFiltrosAQuery(ref query);
+                    AplicarFiltrosAQuery(ref query, parameters);
                     if (cboPrecios.SelectedItem?.ToString() == "Oferta")
                         query += "ORDER BY i.SaleEndDate DESC";
                     else
@@ -1028,14 +1028,41 @@ namespace CargaImagenes.UI
         #endregion
 
         #region Filtros y Carga de Productos
-        private void AplicarFiltrosAQuery(ref string query)
+        private void AplicarFiltrosAQuery(ref string query, Dictionary<string, object> parameters)
         {
             if (_proveedoresFiltro.Count > 0)
-                query += $"AND i.SupplierID IN ({string.Join(",", _proveedoresFiltro)}) ";
+            {
+                var paramNames = new List<string>();
+                for (int i = 0; i < _proveedoresFiltro.Count; i++)
+                {
+                    string name = "@Prov" + i;
+                    paramNames.Add(name);
+                    parameters[name] = _proveedoresFiltro[i];
+                }
+                query += $"AND i.SupplierID IN ({string.Join(",", paramNames)}) ";
+            }
             if (_categoriasFiltro.Count > 0)
-                query += $"AND i.CategoryID IN ({string.Join(",", _categoriasFiltro)}) ";
+            {
+                var paramNames = new List<string>();
+                for (int i = 0; i < _categoriasFiltro.Count; i++)
+                {
+                    string name = "@Cat" + i;
+                    paramNames.Add(name);
+                    parameters[name] = _categoriasFiltro[i];
+                }
+                query += $"AND i.CategoryID IN ({string.Join(",", paramNames)}) ";
+            }
             if (_departamentosFiltro.Count > 0)
-                query += $"AND i.DepartmentID IN ({string.Join(",", _departamentosFiltro)}) ";
+            {
+                var paramNames = new List<string>();
+                for (int i = 0; i < _departamentosFiltro.Count; i++)
+                {
+                    string name = "@Dept" + i;
+                    paramNames.Add(name);
+                    parameters[name] = _departamentosFiltro[i];
+                }
+                query += $"AND i.DepartmentID IN ({string.Join(",", paramNames)}) ";
+            }
             if (_filtrarConImagen && !_filtrarSinImagen)
                 query += "AND img.Imagen IS NOT NULL ";
             else if (!_filtrarConImagen && _filtrarSinImagen)
@@ -1095,7 +1122,7 @@ namespace CargaImagenes.UI
                     LEFT JOIN Department d ON i.DepartmentID = d.ID
                     WHERE 1=1 ";
                 var parameters = new Dictionary<string, object>();
-                AplicarFiltrosAQuery(ref query);
+                AplicarFiltrosAQuery(ref query, parameters);
                 if (!string.IsNullOrWhiteSpace(_textoBusqueda))
                 {
                     var terminos = ObtenerTerminosBusqueda();
