@@ -39,6 +39,7 @@ namespace CargaImagenes.UI
         private bool _filtrarSinImagen;
         private bool _filtrarSoloSeleccionados;
         private string _textoBusqueda = string.Empty;
+        private int _busquedaVersion = 0;
         private bool _suspendCategoriaEvent;
         private DataTable? _dtProveedores;
         private DataTable? _dtCategorias;
@@ -725,15 +726,18 @@ namespace CargaImagenes.UI
         private async void TxtBuscador_TextChanged(object? sender, EventArgs e)
         {
             _textoBusqueda = txtBuscador.Text.Trim();
+            int version = ++_busquedaVersion;
             await Task.Delay(300);
-            await BuscarProductosAsync();
+            if (version != _busquedaVersion)
+                return;
+            await BuscarProductosAsync(version);
         }
 
-        private async Task BuscarProductosAsync()
+        private async Task BuscarProductosAsync(int version)
         {
             if (InvokeRequired)
             {
-                BeginInvoke(new Action(async () => await BuscarProductosAsync()));
+                BeginInvoke(new Action(async () => await BuscarProductosAsync(version)));
                 return;
             }
             try
@@ -812,7 +816,7 @@ namespace CargaImagenes.UI
                 }
 
                 // 3) Restaurar el foco donde estaba
-                if (buscadorTeniaFoco)
+                if (buscadorTeniaFoco && version == _busquedaVersion && txtBuscador.Text == _textoBusqueda)
                 {
                     txtBuscador.Focus();
                     txtBuscador.SelectionStart = posicionCursor;
