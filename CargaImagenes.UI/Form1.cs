@@ -1513,6 +1513,8 @@ namespace CargaImagenes.UI
                     );
                     return;
                 }
+                foreach (var prod in lista)
+                    prod.Precio = prod.PrecioFiltrado;
                 string rutaArchivo = null;
                 using (var sfd = new SaveFileDialog())
                 {
