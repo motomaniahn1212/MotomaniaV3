@@ -173,7 +173,7 @@ namespace CargaImagenes.UI
             // 
             // chkSinImagen
             // 
-            chkSinImagen.Location = new Point(403, 64);
+            chkSinImagen.Location = new Point(403, 65);
             chkSinImagen.Margin = new Padding(3, 2, 3, 2);
             chkSinImagen.Name = "chkSinImagen";
             chkSinImagen.Size = new Size(97, 18);
@@ -295,7 +295,7 @@ namespace CargaImagenes.UI
             // 
             lblProductosSeleccionados.AutoSize = true;
             lblProductosSeleccionados.BackColor = Color.White;
-            lblProductosSeleccionados.Location = new Point(278, 66);
+            lblProductosSeleccionados.Location = new Point(203, 66);
             lblProductosSeleccionados.Name = "lblProductosSeleccionados";
             lblProductosSeleccionados.Size = new Size(94, 15);
             lblProductosSeleccionados.TabIndex = 27;
@@ -457,7 +457,6 @@ namespace CargaImagenes.UI
             txtCantidad.ReadOnly = true;
             txtCantidad.Size = new Size(234, 23);
             txtCantidad.TabIndex = 16;
-           
             // 
             // txtSubdescripcion1
             // 
@@ -482,7 +481,6 @@ namespace CargaImagenes.UI
             txtDescripcionAmpliada.ReadOnly = true;
             txtDescripcionAmpliada.Size = new Size(234, 21);
             txtDescripcionAmpliada.TabIndex = 20;
-           
             // 
             // Form1
             // 
