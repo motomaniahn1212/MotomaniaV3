@@ -1732,7 +1732,14 @@ namespace CargaImagenes.UI
                     ConnectionString = form.ConnectionString,
                     CommandTimeout = 30
                 });
-                await CargarDatosInicialesAsync();
+                try
+                {
+                    await CargarDatosInicialesAsync();
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"Error al reconfigurar la conexión: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
             }
         }
 
