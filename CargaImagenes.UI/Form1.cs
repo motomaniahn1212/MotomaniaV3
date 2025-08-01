@@ -65,7 +65,11 @@ namespace CargaImagenes.UI
             pbProducto.DragEnter += PbProducto_DragEnter;
             pbProducto.DragDrop += PbProducto_DragDrop;
             pbProducto.TabStop = false; // Desactivar TabStop en PictureBox para evitar que robe foco
-            Icon = new Icon("iconn.ico");
+            var iconPath = IOPath.Combine(AppDomain.CurrentDomain.BaseDirectory, "iconn.ico");
+            if (System.IO.File.Exists(iconPath))
+            {
+                Icon = new Icon(iconPath);
+            }
             ConfigurarControlesResponsivos();
             Directory.CreateDirectory(_tempImagePath);
             Directory.CreateDirectory(_appSettings.DefaultImagePath);
