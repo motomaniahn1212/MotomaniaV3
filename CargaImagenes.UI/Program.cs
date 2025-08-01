@@ -1,5 +1,4 @@
 using CargaImagenes.Data;
-using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace CargaImagenes.UI
@@ -67,33 +66,8 @@ namespace CargaImagenes.UI
         // Método para probar la configuración guardada
         private static bool ProbarConfiguracionGuardada(FormConexion formConexion, out string? connectionString)
         {
-            connectionString = null;
-            try
-            {
-                // Invocar CargarConfiguracionGuardada para cargar la configuración
-                var cargarMethod = formConexion.GetType().GetMethod("CargarConfiguracionGuardada",
-                    System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-                cargarMethod?.Invoke(formConexion, null);
-
-                // Obtener la ConnectionString
-                connectionString = formConexion.ConnectionString;
-
-                if (string.IsNullOrEmpty(connectionString))
-                {
-                    return false;
-                }
-
-                // Probar la conexión
-                using (var connection = new SqlConnection(connectionString))
-                {
-                    connection.Open();
-                    return true;
-                }
-            }
-            catch
-            {
-                return false;
-            }
+            connectionString = formConexion.ConnectionString;
+            return !string.IsNullOrEmpty(connectionString) && formConexion.DialogResult == DialogResult.OK;
         }
     }
 }
