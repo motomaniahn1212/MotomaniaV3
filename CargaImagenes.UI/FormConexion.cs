@@ -34,14 +34,6 @@ namespace CargaImagenes.UI
                         txtUsuario.Text = config.User;
                         txtContrasena.Text = config.Password;
                         chkGuardarConfig.Checked = true;
-
-                        // Probar la conexión con la configuración cargada
-                        ConnectionString = ConstructConnectionString();
-                        if (ProbarConexion())
-                        {
-                            DialogResult = DialogResult.OK;
-                            Close();
-                        }
                     }
                 }
             }

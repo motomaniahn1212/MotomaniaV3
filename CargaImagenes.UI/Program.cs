@@ -15,17 +15,10 @@ namespace CargaImagenes.UI
             string? connectionString;
             using (var formConexion = new FormConexion())
             {
-                if (ProbarConfiguracionGuardada(formConexion, out connectionString))
-                {
-                    // Si la conexión es exitosa, no mostramos el formulario
-                }
-                else
-                {
-                    // Si no hay conexión válida, mostramos el formulario
-                    if (formConexion.ShowDialog() != DialogResult.OK)
-                        return;
-                    connectionString = formConexion.ConnectionString;
-                }
+                if (formConexion.ShowDialog() != DialogResult.OK)
+                    return;
+
+                connectionString = formConexion.ConnectionString;
             }
 
             // 2) Construye el ServiceProvider
@@ -61,13 +54,6 @@ namespace CargaImagenes.UI
             // 4) Ejecuta el form con DI
             var mainForm = provider.GetRequiredService<Form1>();
             Application.Run(mainForm);
-        }
-
-        // Método para probar la configuración guardada
-        private static bool ProbarConfiguracionGuardada(FormConexion formConexion, out string? connectionString)
-        {
-            connectionString = formConexion.ConnectionString;
-            return !string.IsNullOrEmpty(connectionString) && formConexion.DialogResult == DialogResult.OK;
         }
     }
 }
