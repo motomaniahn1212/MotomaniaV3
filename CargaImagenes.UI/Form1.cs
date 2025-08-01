@@ -87,7 +87,14 @@ namespace CargaImagenes.UI
             {
                 Size = new Size(cfg.Width, cfg.Height);
             }
-            await CargarDatosInicialesAsync();
+            try
+            {
+                await CargarDatosInicialesAsync();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error al cargar datos iniciales: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
             if (!txtBuscador.Focused)
                 dgvProductos.Focus(); // Establecer foco inicial en DataGridView
             UpdateCounters();    // Mostrar contador de productos seleccionados desde el inicio
