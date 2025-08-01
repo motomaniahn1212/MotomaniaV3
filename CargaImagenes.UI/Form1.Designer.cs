@@ -30,6 +30,7 @@ namespace CargaImagenes.UI
         // Controles para el panel de detalle del producto
         private PictureBox pbProducto;
         private Button BtnCargarImagen;
+        private Button BtnConfiguracion;
         private TextBox txtCodigo;
         private TextBox txtDescripcion;
         private TextBox txtPrecio;
@@ -81,6 +82,7 @@ namespace CargaImagenes.UI
             chkSoloSeleccionados = new CheckBox();
             cboPrecios = new ComboBox();
             BtnSeleccionarTodo = new Button();
+            BtnConfiguracion = new Button();
             pnlFiltros = new Panel();
             lblProductosSeleccionados = new Label();
             pnlResultados = new Panel();
@@ -222,30 +224,30 @@ namespace CargaImagenes.UI
             // BtnGenerarPDF
             // 
             BtnGenerarPDF.BackColor = Color.PaleGoldenrod;
-            BtnGenerarPDF.Location = new Point(400, 7);
+            BtnGenerarPDF.Location = new Point(335, 7);
             BtnGenerarPDF.Margin = new Padding(3, 2, 3, 2);
             BtnGenerarPDF.Name = "BtnGenerarPDF";
-            BtnGenerarPDF.Size = new Size(88, 23);
+            BtnGenerarPDF.Size = new Size(50, 23);
             BtnGenerarPDF.TabIndex = 17;
             BtnGenerarPDF.Text = "PDF";
             BtnGenerarPDF.UseVisualStyleBackColor = false;
             // 
             // BtnLimpiarSeleccion
             // 
-            BtnLimpiarSeleccion.Location = new Point(203, 7);
+            BtnLimpiarSeleccion.Location = new Point(174, 7);
             BtnLimpiarSeleccion.Margin = new Padding(3, 2, 3, 2);
             BtnLimpiarSeleccion.Name = "BtnLimpiarSeleccion";
-            BtnLimpiarSeleccion.Size = new Size(108, 23);
+            BtnLimpiarSeleccion.Size = new Size(85, 23);
             BtnLimpiarSeleccion.TabIndex = 14;
             BtnLimpiarSeleccion.Text = "Limpiar Selección";
             BtnLimpiarSeleccion.UseVisualStyleBackColor = true;
             // 
             // chkSoloSeleccionados
             // 
-            chkSoloSeleccionados.Location = new Point(12, 10);
+            chkSoloSeleccionados.Location = new Point(3, 10);
             chkSoloSeleccionados.Margin = new Padding(3, 2, 3, 2);
             chkSoloSeleccionados.Name = "chkSoloSeleccionados";
-            chkSoloSeleccionados.Size = new Size(121, 18);
+            chkSoloSeleccionados.Size = new Size(80, 18);
             chkSoloSeleccionados.TabIndex = 15;
             chkSoloSeleccionados.Text = "Mostrar ✓";
             chkSoloSeleccionados.UseVisualStyleBackColor = true;
@@ -262,10 +264,10 @@ namespace CargaImagenes.UI
             // 
             // BtnSeleccionarTodo
             // 
-            BtnSeleccionarTodo.Location = new Point(90, 7);
+            BtnSeleccionarTodo.Location = new Point(86, 7);
             BtnSeleccionarTodo.Margin = new Padding(3, 2, 3, 2);
             BtnSeleccionarTodo.Name = "BtnSeleccionarTodo";
-            BtnSeleccionarTodo.Size = new Size(107, 23);
+            BtnSeleccionarTodo.Size = new Size(85, 23);
             BtnSeleccionarTodo.TabIndex = 13;
             BtnSeleccionarTodo.Text = "Seleccionar Todo";
             BtnSeleccionarTodo.UseVisualStyleBackColor = true;
@@ -326,11 +328,12 @@ namespace CargaImagenes.UI
             // 
             pnlControles.BackColor = Color.WhiteSmoke;
             pnlControles.BorderStyle = BorderStyle.FixedSingle;
-            pnlControles.Controls.Add(BtnSeleccionarTodo);
-            pnlControles.Controls.Add(BtnGenerarCotizacion);
-            pnlControles.Controls.Add(chkSoloSeleccionados);
-            pnlControles.Controls.Add(BtnLimpiarSeleccion);
+            pnlControles.Controls.Add(BtnConfiguracion);
             pnlControles.Controls.Add(BtnGenerarPDF);
+            pnlControles.Controls.Add(BtnGenerarCotizacion);
+            pnlControles.Controls.Add(BtnLimpiarSeleccion);
+            pnlControles.Controls.Add(BtnSeleccionarTodo);
+            pnlControles.Controls.Add(chkSoloSeleccionados);
             pnlControles.Location = new Point(10, 528);
             pnlControles.Margin = new Padding(3, 2, 3, 2);
             pnlControles.Name = "pnlControles";
@@ -340,16 +343,27 @@ namespace CargaImagenes.UI
             // BtnGenerarCotizacion
             // 
             BtnGenerarCotizacion.BackColor = Color.AntiqueWhite;
-            BtnGenerarCotizacion.Location = new Point(316, 7);
+            BtnGenerarCotizacion.Location = new Point(262, 7);
             BtnGenerarCotizacion.Margin = new Padding(1);
             BtnGenerarCotizacion.Name = "BtnGenerarCotizacion";
-            BtnGenerarCotizacion.Size = new Size(78, 23);
+            BtnGenerarCotizacion.Size = new Size(70, 23);
             BtnGenerarCotizacion.TabIndex = 26;
             BtnGenerarCotizacion.Text = "Cotizacion";
             BtnGenerarCotizacion.UseVisualStyleBackColor = false;
-            // 
+            //
+            // BtnConfiguracion
+            //
+            BtnConfiguracion.Location = new Point(388, 7);
+            BtnConfiguracion.Margin = new Padding(3, 2, 3, 2);
+            BtnConfiguracion.Name = "BtnConfiguracion";
+            BtnConfiguracion.Size = new Size(110, 23);
+            BtnConfiguracion.TabIndex = 27;
+            BtnConfiguracion.Text = "Configuración";
+            BtnConfiguracion.UseVisualStyleBackColor = true;
+            BtnConfiguracion.Click += BtnConfiguracion_Click;
+            //
             // pnlDetalleProducto
-            // 
+            //
             pnlDetalleProducto.BackColor = Color.WhiteSmoke;
             pnlDetalleProducto.BorderStyle = BorderStyle.FixedSingle;
             pnlDetalleProducto.Controls.Add(BtnCargarImagen);
