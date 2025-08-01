@@ -1726,27 +1726,6 @@ namespace CargaImagenes.UI
                 dgvProductos.Focus(); // Mantener foco en DataGridView después de seleccionar todo
         }
 
-        private async void BtnConfiguracion_Click(object? sender, EventArgs e)
-        {
-            using var form = new FormConexion();
-            if (form.ShowDialog() == DialogResult.OK)
-            {
-                _databaseService = new DatabaseService(new ConnectionConfig
-                {
-                    ConnectionString = form.ConnectionString,
-                    CommandTimeout = 30
-                });
-                try
-                {
-                    await CargarDatosInicialesAsync();
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.Show($"Error al reconfigurar la conexión: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                }
-            }
-        }
-
         private void Form1_KeyDown(object? sender, KeyEventArgs e)
         {
             if (e.Control && e.KeyCode == Keys.C)
