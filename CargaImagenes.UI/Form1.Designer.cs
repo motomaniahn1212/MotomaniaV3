@@ -30,7 +30,6 @@ namespace CargaImagenes.UI
         // Controles para el panel de detalle del producto
         private PictureBox pbProducto;
         private Button BtnCargarImagen;
-        private Button BtnConfiguracion;
         private TextBox txtCodigo;
         private TextBox txtDescripcion;
         private TextBox txtPrecio;
@@ -82,7 +81,6 @@ namespace CargaImagenes.UI
             chkSoloSeleccionados = new CheckBox();
             cboPrecios = new ComboBox();
             BtnSeleccionarTodo = new Button();
-            BtnConfiguracion = new Button();
             pnlFiltros = new Panel();
             lblProductosSeleccionados = new Label();
             pnlResultados = new Panel();
@@ -328,7 +326,6 @@ namespace CargaImagenes.UI
             // 
             pnlControles.BackColor = Color.WhiteSmoke;
             pnlControles.BorderStyle = BorderStyle.FixedSingle;
-            pnlControles.Controls.Add(BtnConfiguracion);
             pnlControles.Controls.Add(BtnGenerarPDF);
             pnlControles.Controls.Add(BtnGenerarCotizacion);
             pnlControles.Controls.Add(BtnLimpiarSeleccion);
@@ -350,17 +347,6 @@ namespace CargaImagenes.UI
             BtnGenerarCotizacion.TabIndex = 26;
             BtnGenerarCotizacion.Text = "Cotizacion";
             BtnGenerarCotizacion.UseVisualStyleBackColor = false;
-            //
-            // BtnConfiguracion
-            //
-            BtnConfiguracion.Location = new Point(388, 7);
-            BtnConfiguracion.Margin = new Padding(3, 2, 3, 2);
-            BtnConfiguracion.Name = "BtnConfiguracion";
-            BtnConfiguracion.Size = new Size(110, 23);
-            BtnConfiguracion.TabIndex = 27;
-            BtnConfiguracion.Text = "Configuración";
-            BtnConfiguracion.UseVisualStyleBackColor = true;
-            BtnConfiguracion.Click += BtnConfiguracion_Click;
             //
             // pnlDetalleProducto
             //
