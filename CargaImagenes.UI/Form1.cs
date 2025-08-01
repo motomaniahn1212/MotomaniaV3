@@ -26,7 +26,7 @@ namespace CargaImagenes.UI
     public partial class Form1 : Form
     {
         #region Variables Privadas
-        private readonly IDatabaseService _databaseService;
+        private IDatabaseService _databaseService;
         private readonly AppSettings _appSettings;
         private readonly BindingList<Producto> _productos = new();
         private readonly List<Producto> _productosTodos = new();
@@ -1713,6 +1713,20 @@ namespace CargaImagenes.UI
             }
             if (!txtBuscador.Focused)
                 dgvProductos.Focus(); // Mantener foco en DataGridView después de seleccionar todo
+        }
+
+        private async void BtnConfiguracion_Click(object? sender, EventArgs e)
+        {
+            using var form = new FormConexion();
+            if (form.ShowDialog() == DialogResult.OK)
+            {
+                _databaseService = new DatabaseService(new ConnectionConfig
+                {
+                    ConnectionString = form.ConnectionString,
+                    CommandTimeout = 30
+                });
+                await CargarDatosInicialesAsync();
+            }
         }
 
         private void Form1_KeyDown(object? sender, KeyEventArgs e)
